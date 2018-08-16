@@ -67,11 +67,14 @@ public:
     //------------------------------------------------------------------------
 
     /** @name Methods to find various types of inferior cells */
-    // @{ 
+    // @{
 
-    /** Returns the dead cells among the consider set. */
-    bitset_t FindDead(const PatternState& board, 
-                      const bitset_t& consider) const;
+	/**
+	 * Returns the dead cells among the consider set.
+	 */
+	bitset_t FindDead(const PatternState& board,
+					  const bitset_t& consider,
+					  PatternHits& hits) const;
 
     /** Finds vulnerable cells for color among the consider set. */
     void FindVulnerable(const PatternState& board, HexColor color,

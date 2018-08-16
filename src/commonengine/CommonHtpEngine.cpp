@@ -325,7 +325,10 @@ void CommonHtpEngine::CmdComputeDominatedOnCell(HtpCommand& cmd)
     m_pe.ice.FindDominatedOnCell(brd.GetPatternState(), col, 
                                  cell, hits);
     for (std::size_t i = 0; i < hits.size(); ++i)
+    {
         cmd << " " << hits[i].GetPattern()->GetName();
+        LogInfo() << "[CommonHtpEngine::CmdComputeDominatedOnCell] Added dominated pattern [" << hits[i].GetPattern()->GetName() << "].\n";
+    }
     cmd << '\n';
 }
 

@@ -212,6 +212,14 @@ public:
                           const HashedPatternSet& patset, 
                           MatchMode mode, 
                           std::vector<PatternHits>& hits) const;
+	/**
+	 * Matches the hashed patterns on the given consider set, returning a set of cells where at least one pattern
+	 * matched. For each cell, the search is aborted after the first match. No information on the hits is returned.
+	 * This is a convenience method.
+	 */
+	bitset_t MatchOnBoard(const bitset_t& consider,
+						  const HashedPatternSet& patset,
+						  PatternHits& hits) const;
 
     /** Matches the hashed patterns on the given consider set,
         returning a set of cells where at least one pattern

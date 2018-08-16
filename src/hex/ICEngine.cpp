@@ -540,11 +540,16 @@ std::size_t ICEngine::ComputeDeadCaptured(Groups& groups, PatternState& pastate,
         while (true) 
         {
             /** @todo This can be optimized quite a bit. */
-            bitset_t dead = FindDead(pastate, brd.GetEmpty());
+			PatternHits hits;
+			bitset_t dead = FindDead(pastate, brd.GetEmpty(), hits);
             if (dead.none()) 
                 break;
             count += dead.count();
             inf.AddDead(dead);
+			for (auto& hit : hits)
+			{
+				LogInfo() << "[ICEngine::ComputeDeadCaptured] Added dead pattern [" << hit.GetPattern()->GetName() << "].\n";
+			}
             brd.AddColor(DEAD_COLOR, dead);
             pastate.Update(dead);
         }
@@ -843,9 +848,10 @@ std::size_t ICEngine::BackupOpponentDead(HexColor color,
 //----------------------------------------------------------------------------
 
 bitset_t ICEngine::FindDead(const PatternState& pastate,
-                            const bitset_t& consider) const
+							const bitset_t& consider,
+							PatternHits& hits) const
 {
-    return pastate.MatchOnBoard(consider, m_patterns.HashedDead());
+	return pastate.MatchOnBoard(consider, m_patterns.HashedDead(), hits);
 }
 
 bitset_t ICEngine::FindCaptured(const PatternState& pastate, HexColor color, 
@@ -871,6 +877,7 @@ bitset_t ICEngine::FindCaptured(const PatternState& pastate, HexColor color,
             carrier.set(*p);
             if ((carrier & captured).none())
                 captured |= carrier;
+			LogInfo() << "[ICEngine::FindCaptured] Added captured pattern [" << hits.front().GetPattern()->GetName() << "].\n";
         }
     }
     return captured;
@@ -891,6 +898,7 @@ bitset_t ICEngine::FindPermanentlyInferior(const PatternState& pastate,
         const std::vector<HexPoint>& moves = hits[*p][0].Moves2();
         for (unsigned i=0; i<moves.size(); ++i)
             carrier.set(moves[i]);
+		LogInfo() << "[ICEngine::FindPermanentlyInferior] Added permanently inferior pattern [" << hits[*p].front().GetPattern()->GetName() << "].\n";
     }
     return ret;
 }
@@ -932,6 +940,7 @@ void ICEngine::FindMutualFillin(const PatternState& pastate,
             mut[color].set(moves1[i]);
         for (unsigned i = 0; i < moves2.size(); ++i)
             mut[!color].set(moves2[i]);
+		LogInfo() << "[ICEngine::FindMutualFillin] Added mutual fillin pattern [" << hits.front().GetPattern()->GetName() << "].\n";
     }
 }
 
@@ -962,6 +971,7 @@ void ICEngine::FindVulnerable(const PatternState& pastate, HexColor color,
                 carrier.set(moves2[i]);
             }
             inf.AddVulnerable(*p, VulnerableKiller(killer, carrier));
+			LogInfo() << "[ICEngine::FindVulnerable] Added vulnerable pattern [" << hits[*p][j].GetPattern()->GetName() << "].\n";
         }
     }
 }
@@ -996,6 +1006,7 @@ void ICEngine::FindReversible(const PatternState& pastate, HexColor color,
                 carrier.set(moves2[i]);
             }
             inf.AddReversible(*p, carrier, reverser);
+			LogInfo() << "[ICEngine::FindReversible] Added reversible pattern [" << hits[*p][j].GetPattern()->GetName() << "].\n";
         }
     }
 }
@@ -1025,6 +1036,7 @@ void ICEngine::FindDominated(const PatternState& pastate, HexColor color,
             // Note: this can change in the future if more complex ICE
             // patterns are found
             BenzeneAssert(hits[*p][j].Moves2().size() == 0);
+			LogInfo() << "[ICEngine::FindDominated] Added dominated pattern [" << hits[*p][j].GetPattern()->GetName() << "].\n";
         }
     }
     // Add dominators found via hand coded patterns
@@ -1080,7 +1092,11 @@ void ICEngine::CheckHandCodedDominates(const StoneBoard& brd,
     // Bottom corner
     pat.rotate(brd.Const());
     if (consider.test(pat.dominatee()) && pat.check(brd))
-        inf.AddDominated(pat.dominatee(), pat.dominator());
+	{
+		inf.AddDominated(pat.dominatee(), pat.dominator());
+		LogInfo() << "[ICEngine::CheckHandCodedDominates] Added handcoded dominated pattern."
+				  << " dominatee = " << pat.dominatee() << " dominator = " << pat.dominator() << "\n";
+	}
 }
 
 //----------------------------------------------------------------------------

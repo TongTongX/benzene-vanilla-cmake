@@ -254,6 +254,23 @@ bitset_t PatternState::MatchOnBoard(const bitset_t& consider,
     return ret;
 }
 
+bitset_t PatternState::MatchOnBoard(const bitset_t& consider,
+									const HashedPatternSet& patset,
+									PatternHits& hits) const
+{
+	bitset_t ret;
+	bitset_t lookat = consider & Board().Const().GetCells();
+	for (BitsetIterator p(lookat); p; ++p)
+	{
+		MatchOnCell(patset, *p, STOP_AT_FIRST_HIT, hits);
+		if (!hits.empty())
+		{
+			ret.set(*p);
+		}
+	}
+	return ret;
+}
+
 bitset_t PatternState::MatchOnBoard(const bitset_t& consider, 
                                     const HashedPatternSet& patset) const
 {
